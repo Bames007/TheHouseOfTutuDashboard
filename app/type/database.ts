@@ -16,6 +16,22 @@ export enum UserRole {
   INSTRUCTOR = "instructor",
 }
 
+// ─────────────────────────────────────────────────────────────
+// ATTENDANCE
+// Written to `attendance/{id}` by `admin-api.ts → markAttendance`.
+// Read by `student-api.ts → getAttendance`.
+// ─────────────────────────────────────────────────────────────
+export interface Attendance {
+  id: string;
+  classId: string;
+  studentId: string;
+  date: string; // ISO timestamp of the class
+  status: "present" | "absent" | "late" | "excused";
+  markedBy?: string; // admin id
+  markedAt?: string; // ISO timestamp
+  notes?: string | null;
+}
+
 export type DeliveryFormat =
   | "offline-6weeks"
   | "offline-3months"
@@ -355,4 +371,40 @@ export interface AssignmentRecord {
       feedback?: string;
     }
   >;
+}
+
+// ─────────────────────────────────────────────────────────────
+// CERTIFICATE REQUEST
+// Written to `certificateRequests/{id}` by the student portal.
+// Read + processed by `admin-api.ts`.
+// ─────────────────────────────────────────────────────────────
+export interface CertificateRequest {
+  id: string;
+  studentId: string;
+
+  /**
+   * "pending"   → just submitted, admin has not looked at it
+   * "approved"  → admin approved, certificate not yet generated
+   * "rejected"  → admin rejected
+   * "issued"    → PDF generated + downloadUrl set
+   *
+   * Must match `Student.certificateStatus`.
+   */
+  status: "pending" | "approved" | "rejected" | "issued";
+
+  // Snapshot at request time (safe to omit if only ID is stored)
+  studentName?: string;
+  program?: string;
+  certificateType?: string;
+  reason?: string;
+  requestedAt?: string;
+
+  // Processing metadata (written by updateCertificateStatus)
+  processedBy?: string;
+  processedAt?: string;
+  notes?: string;
+
+  // Issuance metadata (written when status becomes "issued")
+  issuedDate?: string;
+  downloadUrl?: string;
 }
